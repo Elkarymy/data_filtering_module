@@ -1,0 +1,6 @@
+Description_of_intervention,Example,Source,Field_of_intervention,Type_of_intervention,Residential,Office,Educational,Other,Effect_on_space_cooling,Effect_on_summer_thermal_comfort,Indirect_effect
+"Limiting the presence in buildings in heatwaves by providing ""cool islands""",Not available,https://www.c40knowledgehub.org/s/article/Cities100-Paris-is-using-blue-and-green-infrastructure-to-tackle-city-heat?language=en_US,Occupant presence,Nudging occupants,Y,N,N,N,eliminates the need of cooling,Reduction of overheating hours,Reducing heat mortality in dwellings
+"Restructuring occupancy hours to avoid presence in buildings 
+periods with peak loads",Summer Fridays,https://doi.org/10.1016/j.buildenv.2017.06.010,Occupant presence,Nudging occupants,N,Y,N,Y,Reduction of space cooling,Reduction of overheating hours,Increased presence elsewhere
+"Restructuring occupancy hours to avoid presence in buildings 
+periods with peak loads",Altering start-dates and scheduling in educational institutes to reduce cooling load,https://doi.org/10.1016/j.jobe.2021.102405,Occupant presence,Policy,N,N,Y,N,Reduction of space cooling,Reduction of overheating hours,"Increased presence elsewhere, affects parents with children"
