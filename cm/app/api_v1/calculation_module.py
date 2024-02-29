@@ -1,100 +1,72 @@
-import os
-
-from osgeo import gdal
-
-from ..helper import generate_output_file_tif, create_zip_shapefiles
-from ..constant import CM_NAME
 import pandas as pd
-import time
+import os
+def filter_data(df, field_of_intervention=None, intervention_type=None, space_filter=None):
+    filtered_df = df.copy()  # Make a copy of the original DataFrame
 
-""" Entry point of the calculation module function"""
+    # Apply filters based on user input
+    if field_of_intervention:
+        filtered_df = filtered_df[filtered_df['Field_of_intervention'].str.lower() == field_of_intervention.lower()]
+    if intervention_type:
+        filtered_df = filtered_df[filtered_df['Type_of_intervention'].str.lower() == intervention_type.lower()]
+    if space_filter:
+        for col in ['Residential', 'Office', 'Educational', 'Other']:
+            if space_filter.get(col) == 'Y':
+                filtered_df = filtered_df[filtered_df[col].str.lower() == 'y']
 
-#TODO: CM provider must "change this code"
-#TODO: CM provider must "not change input_raster_selection,output_raster  1 raster input => 1 raster output"
-#TODO: CM provider can "add all the parameters he needs to run his CM
-#TODO: CM provider can "return as many indicators as he wants"
-def calculation(output_directory, inputs_raster_selection,inputs_vector_selection, inputs_parameter_selection):
-    #TODO the folowing code must be changed by the code of the calculation module
+    return filtered_df
+def main():
+    # Get the current directory of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # generate the output raster file
-    output_raster1 = generate_output_file_tif(output_directory)
-    # retrieve the inputs all input defined in the signature
-    factor = float(inputs_parameter_selection["multiplication_factor"])
+    # Construct the absolute path to the CSV data file
+    csv_file_path = os.path.join(script_dir, 'my_calculation_module_directory', 'input_data', 'cleaned_data.csv')
 
-    #retrieve the inputs layes
-    input_raster_selection =  inputs_raster_selection["heat"]
+    print("CSV file path:", csv_file_path)  # For debugging
+    if not os.path.exists(csv_file_path):
+        print("Error: CSV file not found.")
+        return
 
+    print("--- Behavioural interventions ---")
+    print("Please provide the following information:")
 
-    #retrieve the inputs layes
-    """
-        print("inputs_vector_selection ",inputs_vector_selection)
-        a_vehicle_stock =  inputs_vector_selection["a_vehicle_stock"]
-        print("a_vehicle_stock ",a_vehicle_stock)
-        b_final_energy_consumption =  inputs_vector_selection["b_final_energy_consumption"]
-        print("b_final_energy_consumption ",b_final_energy_consumption)
-        b_vehicle_stock =  inputs_vector_selection["b_vehicle_stock"]
-        print("b_vehicle_stock ",b_vehicle_stock)
-        bau_final_energy_consumption =  inputs_vector_selection["bau_final_energy_consumption"]
-        print("bau_final_energy_consumption ",bau_final_energy_consumption)"""
+    # Prompt user for input
+    field_of_intervention = input("Enter field of intervention (e.g., Occupant presence, Equipment use..): ")
+    intervention_type = input(
+        "Enter intervention type (e.g., Monetary incentives, Providing feedback and information...): ")
+    # Prompt user for space filtering options
+    print("\nSpaces to Include:")
+    space_filter_options = {}
+    for space_type in ['Residential', 'Office', 'Educational', 'Other']:
+        choice = input(f"Include {space_type} (Y/N): ").strip().upper()
+        space_filter_options[space_type] = choice
+    # Read the data from CSV
+    try:
+        df = pd.read_csv(csv_file_path)
+    except FileNotFoundError:
+        print("Error: CSV file not found.")
+        return
 
-    # TEST FOR VECTOR
+    # Filter the data
+    filtered_data = filter_data(df, field_of_intervention=field_of_intervention, intervention_type=intervention_type,
+                                space_filter=space_filter_options)
 
+    # Display filtered data
+    print("\nFiltered Data:")
+    if filtered_data.empty:
+        print("No data found matching the specified criteria.")
+    else:
+        print("-" * 100)
+        print(filtered_data.to_string(index=False))
+        print("-" * 100)
 
-
-
-    # TODO this part bellow must be change by the CM provider
-    ds = gdal.Open(input_raster_selection)
-    ds_band = ds.GetRasterBand(1)
-
-    #----------------------------------------------------
-    pixel_values = ds.ReadAsArray()
-    #----------Reduction factor----------------
-
-    pixel_values_modified = pixel_values* float(factor)
-    hdm_sum  = float(pixel_values_modified.sum())/1000
-
-
-    gtiff_driver = gdal.GetDriverByName('GTiff')
-    #print ()
-    out_ds = gtiff_driver.Create(output_raster1, ds_band.XSize, ds_band.YSize, 1, gdal.GDT_UInt16, ['compress=DEFLATE',
-                                                                                                         'TILED=YES',
-                                                                                                         'TFW=YES',
-                                                                                                         'ZLEVEL=9',
-                                                                                                         'PREDICTOR=1'])
-    out_ds.SetProjection(ds.GetProjection())
-    out_ds.SetGeoTransform(ds.GetGeoTransform())
-
-    ct = gdal.ColorTable()
-    ct.SetColorEntry(0, (0,0,0,255))
-    ct.SetColorEntry(1, (110,220,110,255))
-    out_ds.GetRasterBand(1).SetColorTable(ct)
-
-    out_ds_band = out_ds.GetRasterBand(1)
-    out_ds_band.SetNoDataValue(0)
-    out_ds_band.WriteArray(pixel_values_modified)
-
-    del out_ds
-    # output geneneration of the output
-    graphics = []
-    vector_layers = []
-
-    #TODO to create zip from shapefile use create_zip_shapefiles from the helper before sending result
-    #TODO exemple  output_shpapefile_zipped = create_zip_shapefiles(output_directory, output_shpapefile)
-    result = dict()
-    result['name'] = CM_NAME
-    result['indicator'] = [
-        {"unit": "GWh", "name": "Heat density total multiplied by  {}".format(factor),"value": str(hdm_sum)}
-    ]
-    result['graphics'] = graphics
-    result['vector_layers'] = vector_layers
-    result['raster_layers'] = [{"name": "layers of heat_densiy {}".format(factor),"path": output_raster1, "type": "heat"}]
-    print ('result',result)
-    return result
+        # Save filtered data to CSV
+        save_option = input("\nDo you want to save the filtered data to a CSV file? (Y/N): ").strip().upper()
+        if save_option == 'Y':
+            filename = input("Enter the filename to save the data (e.g., filtered_data): ").strip()
+            filename += ".csv" if not filename.endswith(".csv") else ""  # Ensure the filename ends with .csv
+            filtered_data.to_csv(filename, index=False)
+            print(f"Filtered data saved to {filename}")
 
 
-def colorizeMyOutputRaster(out_ds):
-    ct = gdal.ColorTable()
-    ct.SetColorEntry(0, (0,0,0,255))
-    ct.SetColorEntry(1, (110,220,110,255))
-    out_ds.SetColorTable(ct)
-    return out_ds
+if __name__ == "__main__":
+    main()

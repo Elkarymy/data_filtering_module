@@ -3,7 +3,7 @@ import unittest
 import sys
 import coverage
 
-from tests import suite
+from test import suite
 
 COV = coverage.coverage(branch=True, include='cm/app/*')
 COV.start()

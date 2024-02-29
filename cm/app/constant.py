@@ -1,50 +1,63 @@
-
-CELERY_BROKER_URL_DOCKER = 'amqp://admin:mypass@rabbit:5672/'
+# Set the Celery broker URL for Docker and local testing
+CELERY_BROKER_URL_DOCKER = 'amqp://guest:guest@localhost:5672//'
 CELERY_BROKER_URL_LOCAL = 'amqp://localhost/'
 
+# Choose the appropriate Celery broker URL based on the testing environment
+# In this case, we're testing locally, so we'll use the local URL
 
-CM_REGISTER_Q = 'rpc_queue_CM_register' # Do no change this value
 
-CM_NAME = 'CM - Scale heat and cool density maps'
-RPC_CM_ALIVE= 'rpc_queue_CM_ALIVE' # Do no change this value
-RPC_Q = 'rpc_queue_CM_compute' # Do no change this value
-CM_ID = 1 # CM_ID is defined by the enegy research center of Martigny (CREM)
+# Other configuration parameters
+CM_REGISTER_Q = 'rpc_queue_CM_register'
+CM_NAME = 'CM - Data Filtering Module'
+RPC_CM_ALIVE = 'rpc_queue_CM_ALIVE'
+RPC_Q = 'rpc_queue_CM_compute'
+CM_ID = 14
 PORT_LOCAL = int('500' + str(CM_ID))
 PORT_DOCKER = 80
-
-#TODO ********************setup this URL depending on which version you are running***************************
 
 CELERY_BROKER_URL = CELERY_BROKER_URL_DOCKER
 PORT = PORT_DOCKER
 
-#TODO ********************setup this URL depending on which version you are running***************************
 
-TRANFER_PROTOCOLE ='http://'
-INPUTS_CALCULATION_MODULE = [
-    {'input_name': 'Multiplication factor',
-     'input_type': 'input',
-     'input_parameter_name': 'multiplication_factor',
-     'input_value': '1',
-     'input_priority': 0,
-     'input_unit': '',
-     'input_min': 0,
-     'input_max': 10, 'cm_id': CM_ID  # Do no change this value
-     },
-]
+TRANFER_PROTOCOLE = 'http://'
 
+# Define input parameters for the calculation module
+INPUTS_CALCULATION_MODULE = {
+    "field_of_intervention": {
+        "name": "Field of Intervention",
+        "type": "select",
+        "options": ["Occupant presence", "Building insulation", "Energy consumption", "Other"]
+    },
+    "intervention_type": {
+        "name": "Intervention Type",
+        "type": "select",
+        "options": ["Monetary incentives", "Regulatory measures", "Educational programs", "Other"]
+    },
+    "space_filter_options": {
+        "name": "Space Filter Options",
+        "type": "checkbox",
+        "options": {
+            "Residential": "Y",
+            "Office": "N",
+            "Educational": "N",
+            "Other": "N"
+        }
+    }
+}
 
+# Define the SIGNATURE dictionary
 SIGNATURE = {
-
-    "category": "Demand",
+    "category": "Data Filtering",
     "cm_name": CM_NAME,
-    "wiki_url": "https://wiki.hotmaps.hevs.ch/en/CM-Scale-heat-and-cool-density-maps",
+    "wiki_url": "https://wiki.hotmaps.hevs.ch/en/Data-Filtering-Module",
     "layers_needed": [],
-    "type_layer_needed": [
-        {"type": "heat", "description": "Choose a heat demand density layer."}
-    ],
+    "type_layer_needed": [],
     "type_vectors_needed": [],
     "cm_url": "Do not add something",
-    "cm_description": "This calculation module allows to scale the heat demand density layer up or down.",
+    "cm_description": "This computation module allows to filter data based on specified criteria.",
     "cm_id": CM_ID,
-    'inputs_calculation_module': INPUTS_CALCULATION_MODULE
+    "inputs_calculation_module": INPUTS_CALCULATION_MODULE,
+    "authorized_scale": ["NUTS 3", "NUTS 2", "NUTS 1", "NUTS 0", "Hectare", "LAU 2"]
 }
+
+# Now you can use the above configurations in your application
