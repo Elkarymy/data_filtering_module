@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+
 def filter_data(df, field_of_intervention=None, intervention_type=None, space_filter=None):
     filtered_df = df.copy()  # Make a copy of the original DataFrame
 
@@ -14,6 +15,7 @@ def filter_data(df, field_of_intervention=None, intervention_type=None, space_fi
                 filtered_df = filtered_df[filtered_df[col].str.lower() == 'y']
 
     return filtered_df
+
 def main():
     # Get the current directory of the script
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,6 +41,7 @@ def main():
     for space_type in ['Residential', 'Office', 'Educational', 'Other']:
         choice = input(f"Include {space_type} (Y/N): ").strip().upper()
         space_filter_options[space_type] = choice
+
     # Read the data from CSV
     try:
         df = pd.read_csv(csv_file_path)
@@ -70,3 +73,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
